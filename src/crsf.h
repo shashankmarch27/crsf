@@ -9,6 +9,10 @@ private:
     int tx_pin;
     int rx_pin;
 
+    bool header_detected;
+    uint8_t rx_index;
+    uint8_t rx_data[64];
+
     #ifdef ESP32
     HardwareSerial *crsf_port;
     #endif
@@ -21,7 +25,7 @@ public:
     #endif
 
     void init();
-    void read();
+    void read(crsfpacket_t* packet);
 
 };
 
