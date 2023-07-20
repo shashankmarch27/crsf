@@ -8,10 +8,10 @@ crsf::crsf(HardwareSerial *crsf_port, int rx_pin, int tx_pin, bool inverted){
 }
 
 void crsf::init(){
-    crsf_port->begin(BAUDRATE_CRSF,SERIAL_8N1,rx_pin,tx_pin,inverted);
+    crsf_port->begin(CRSF_BAUDRATE,SERIAL_8N1,rx_pin,tx_pin,inverted);
 }
 
-void crsf::read(crsfpacket_t* packet){
+void crsf::read(crsf_channels_t* packet){
     while(crsf_port->available()){
         uint8_t buffer = crsf_port->read();
         if(header_detected){
@@ -23,11 +23,20 @@ void crsf::read(crsfpacket_t* packet){
             }
         }
         else{
-            if(buffer == 0xEE){
+            if(buffer == CRSF_ADDRESS_FLIGHT_CONTROLLER){
                 header_detected = true;
-                rx_data[0] = 0xEE;
+                rx_data[0] = CRSF_ADDRESS_FLIGHT_CONTROLLER;
                 rx_index = 1;
             }
         }
+
+        if(rx_index == sizeof(rx_data)/sizeof(rx_data[0])){
+            rx_index = 0;
+            header_detected = false;
+        }
+    }
+
+    if(rx_data[2] == CRSF_FRAMETYPE_RC_CHANNELS_PACKED){
+        memcpy(packet,rx_data + 3,sizeof(*packet));
     }
 }

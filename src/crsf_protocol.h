@@ -4,19 +4,18 @@
 
 #define PACKED __attribute__((packed))
 
-#define CRSF_BAUDRATE           420000
+#define UNINVERTED_CRSF false
+#define INVERTED_CRSF true
+#define CRSF_BAUDRATE 420000
 #define CRSF_NUM_CHANNELS 16
-#define CRSF_CHANNEL_VALUE_MIN  172 // 987us - actual CRSF min is 0 with E.Limits on
+#define CRSF_CHANNEL_VALUE_MIN 172 // 987us - actual CRSF min is 0 with E.Limits on
 #define CRSF_CHANNEL_VALUE_1000 191
-#define CRSF_CHANNEL_VALUE_MID  992
+#define CRSF_CHANNEL_VALUE_MID 992
 #define CRSF_CHANNEL_VALUE_2000 1792
-#define CRSF_CHANNEL_VALUE_MAX  1811 // 2012us - actual CRSF max is 1984 with E.Limits on
+#define CRSF_CHANNEL_VALUE_MAX 1811 // 2012us - actual CRSF max is 1984 with E.Limits on
 #define CRSF_CHANNEL_VALUE_SPAN (CRSF_CHANNEL_VALUE_MAX - CRSF_CHANNEL_VALUE_MIN)
 #define CRSF_MAX_PACKET_SIZE 64 // max declared len is 62+DEST+LEN on top of that = 64
 #define CRSF_MAX_PAYLOAD_LEN (CRSF_MAX_PACKET_SIZE - 4) // Max size of payload in [dest] [len] [type] [payload] [crc8]
-
-// Clashes with CRSF_ADDRESS_FLIGHT_CONTROLLER
-#define CRSF_SYNC_BYTE 0XC8
 
 enum {
     CRSF_FRAME_LENGTH_ADDRESS = 1, // length of ADDRESS field
@@ -36,8 +35,7 @@ enum {
     CRSF_FRAME_ATTITUDE_PAYLOAD_SIZE = 6,
 };
 
-typedef enum
-{
+typedef enum{
     CRSF_FRAMETYPE_GPS = 0x02,
     CRSF_FRAMETYPE_BATTERY_SENSOR = 0x08,
     CRSF_FRAMETYPE_LINK_STATISTICS = 0x14,
@@ -59,8 +57,7 @@ typedef enum
     CRSF_FRAMETYPE_MSP_WRITE = 0x7C, // write with 8 byte chunked binary (OpenTX outbound telemetry buffer limit)
 } crsf_frame_type_e;
 
-typedef enum
-{
+typedef enum{
     CRSF_ADDRESS_BROADCAST = 0x00,
     CRSF_ADDRESS_USB = 0x10,
     CRSF_ADDRESS_TBS_CORE_PNP_PRO = 0x80,
@@ -76,36 +73,33 @@ typedef enum
     CRSF_ADDRESS_CRSF_TRANSMITTER = 0xEE,
 } crsf_addr_e;
 
-typedef struct crsf_header_s
-{
+typedef struct crsf_header_s{
     uint8_t device_addr; // from crsf_addr_e
     uint8_t frame_size;  // counts size after this byte, so it must be the payload size + 2 (type and crc)
     uint8_t type;        // from crsf_frame_type_e
     uint8_t data[0];
 } PACKED crsf_header_t;
 
-typedef struct crsf_channels_s
-{
-    unsigned ch0 : 11;
-    unsigned ch1 : 11;
-    unsigned ch2 : 11;
-    unsigned ch3 : 11;
-    unsigned ch4 : 11;
-    unsigned ch5 : 11;
-    unsigned ch6 : 11;
-    unsigned ch7 : 11;
-    unsigned ch8 : 11;
-    unsigned ch9 : 11;
-    unsigned ch10 : 11;
-    unsigned ch11 : 11;
-    unsigned ch12 : 11;
-    unsigned ch13 : 11;
-    unsigned ch14 : 11;
-    unsigned ch15 : 11;
+typedef struct crsf_channels_s{
+    unsigned channel0 : 11;
+    unsigned channel1 : 11;
+    unsigned channel2 : 11;
+    unsigned channel3 : 11;
+    unsigned channel4 : 11;
+    unsigned channel5 : 11;
+    unsigned channel6 : 11;
+    unsigned channel7 : 11;
+    unsigned channel8 : 11;
+    unsigned channel9 : 11;
+    unsigned channel10 : 11;
+    unsigned channel11 : 11;
+    unsigned channel12 : 11;
+    unsigned channel13 : 11;
+    unsigned channel14 : 11;
+    unsigned channel15 : 11;
 } PACKED crsf_channels_t;
 
-typedef struct crsfPayloadLinkstatistics_s
-{
+typedef struct crsfPayloadLinkstatistics_s{
     uint8_t uplink_RSSI_1;
     uint8_t uplink_RSSI_2;
     uint8_t uplink_Link_quality;
@@ -118,16 +112,14 @@ typedef struct crsfPayloadLinkstatistics_s
     int8_t downlink_SNR;
 } crsfLinkStatistics_t;
 
-typedef struct crsf_sensor_battery_s
-{
+typedef struct crsf_sensor_battery_s{
     uint32_t voltage : 16;  // V * 10 big endian
     uint32_t current : 16;  // A * 10 big endian
     uint32_t capacity : 24; // mah big endian
     uint32_t remaining : 8; // %
 } PACKED crsf_sensor_battery_t;
 
-typedef struct crsf_sensor_gps_s
-{
+typedef struct crsf_sensor_gps_s{
     int32_t latitude;   // degree / 10,000,000 big endian
     int32_t longitude;  // degree / 10,000,000 big endian
     uint16_t groundspeed;  // km/h / 10 big endian
@@ -137,8 +129,7 @@ typedef struct crsf_sensor_gps_s
 } PACKED crsf_sensor_gps_t;
 
 #if !defined(__linux__)
-static inline uint16_t htobe16(uint16_t val)
-{
+static inline uint16_t htobe16(uint16_t val){
 #if (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
     return val;
 #else
@@ -146,8 +137,7 @@ static inline uint16_t htobe16(uint16_t val)
 #endif
 }
 
-static inline uint16_t be16toh(uint16_t val)
-{
+static inline uint16_t be16toh(uint16_t val){
 #if (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
     return val;
 #else
@@ -155,8 +145,7 @@ static inline uint16_t be16toh(uint16_t val)
 #endif
 }
 
-static inline uint32_t htobe32(uint32_t val)
-{
+static inline uint32_t htobe32(uint32_t val){
 #if (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
     return val;
 #else
@@ -164,12 +153,11 @@ static inline uint32_t htobe32(uint32_t val)
 #endif
 }
 
-static inline uint32_t be32toh(uint32_t val)
-{
+static inline uint32_t be32toh(uint32_t val){
 #if (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
     return val;
 #else
     return __builtin_bswap32(val);
 #endif
 }
-#endif 
+#endif  

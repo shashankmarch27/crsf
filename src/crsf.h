@@ -11,7 +11,7 @@ private:
 
     bool header_detected;
     uint8_t rx_index;
-    uint8_t rx_data[64];
+    uint8_t rx_data[CRSF_MAX_PACKET_SIZE];
 
     #ifdef ESP32
     HardwareSerial *crsf_port;
@@ -25,7 +25,7 @@ public:
     #endif
 
     void init();
-    void read(crsfpacket_t* packet);
+    void read(crsf_channels_t* packet);
 
 };
 
