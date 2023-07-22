@@ -11,7 +11,7 @@ void crsf::init(){
     crsf_port->begin(CRSF_BAUDRATE,SERIAL_8N1,rx_pin,tx_pin,inverted);
 }
 
-void crsf::read(crsf_channels_t* packet){
+void crsf::read(){
     while(crsf_port->available()){
         uint8_t buffer = crsf_port->read();
         if(header_detected){
@@ -33,10 +33,23 @@ void crsf::read(crsf_channels_t* packet){
         if(rx_index == sizeof(rx_data)/sizeof(rx_data[0])){
             rx_index = 0;
             header_detected = false;
-        }
+        
+        }   
     }
+    memcpy(&header,rx_data,sizeof(header));
 
-    if(rx_data[2] == CRSF_FRAMETYPE_RC_CHANNELS_PACKED){
-        memcpy(packet,rx_data + 3,sizeof(*packet));
+    if(header.type == CRSF_FRAMETYPE_RC_CHANNELS_PACKED){
+        memcpy(&packet,rx_data + 3,sizeof(packet));
     }
+    else if(header.type == CRSF_FRAMETYPE_LINK_STATISTICS){
+        memcpy(&link_status,rx_data + 3,sizeof(link_status));
+    }
+}
+
+crsf_channels_t crsf::getChannel(){
+    return packet;
+}
+
+crsfLinkStatistics_t crsf::getlinkStatus(){
+    return link_status;
 }
