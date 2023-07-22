@@ -15,6 +15,9 @@ private:
 
     #ifdef ESP32
     HardwareSerial *crsf_port;
+    
+    #elif defined(ARDUINO_ARCH_RP2040)
+    SerialUART *crsf_port;
     #endif
 
     bool inverted;
@@ -26,6 +29,9 @@ private:
 public:
     #ifdef ESP32
     crsf(HardwareSerial *crsf_port, int rx_pin, int tx_pin, bool inverted = UNINVERTED_CRSF);
+
+    #elif defined(ARDUINO_ARCH_RP2040)
+    crsf(SerialUART *crsf_port, int rx_pin, int tx_pin);
     #endif
 
     void init();

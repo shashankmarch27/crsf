@@ -1,5 +1,7 @@
 #include "crsf.h"
 
+
+#if defined(ESP32)
 crsf::crsf(HardwareSerial *crsf_port, int rx_pin, int tx_pin, bool inverted){
     this->inverted = inverted;
     this->crsf_port = crsf_port;
@@ -10,6 +12,20 @@ crsf::crsf(HardwareSerial *crsf_port, int rx_pin, int tx_pin, bool inverted){
 void crsf::init(){
     crsf_port->begin(CRSF_BAUDRATE,SERIAL_8N1,rx_pin,tx_pin,inverted);
 }
+
+#elif defined(ARDUINO_ARCH_RP2040)
+crsf::crsf(SerialUART *crsf_port, int rx_pin, int tx_pin){
+    this->crsf_port = crsf_port;
+    this->tx_pin = tx_pin;
+    this->rx_pin = rx_pin;
+}
+
+void crsf::init(){
+    crsf_port->setRX(rx_pin);
+    crsf_port->setTX(tx_pin);
+    crsf_port->begin(CRSF_BAUDRATE,SERIAL_8N1);
+}
+#endif
 
 void crsf::read(){
     while(crsf_port->available()){

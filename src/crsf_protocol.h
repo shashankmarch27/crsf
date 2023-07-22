@@ -80,7 +80,6 @@ typedef struct crsf_header_s{
 } PACKED crsf_header_t;
 
 typedef struct crsf_channels_s{
-    unsigned channel0 : 11;
     unsigned channel1 : 11;
     unsigned channel2 : 11;
     unsigned channel3 : 11;
@@ -96,6 +95,7 @@ typedef struct crsf_channels_s{
     unsigned channel13 : 11;
     unsigned channel14 : 11;
     unsigned channel15 : 11;
+    unsigned channel16 : 11;
 } PACKED crsf_channels_t;
 
 typedef struct crsfPayloadLinkstatistics_s{
