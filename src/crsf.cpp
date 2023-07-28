@@ -30,6 +30,7 @@ void crsf::init(){
 void crsf::read(){
     while(crsf_port->available()){
         uint8_t buffer = crsf_port->read();
+
         if(header_detected){
             rx_data[rx_index] = buffer;
             rx_index++;
@@ -39,9 +40,9 @@ void crsf::read(){
             }
         }
         else{
-            if(buffer == CRSF_ADDRESS_FLIGHT_CONTROLLER){
+            if(buffer == CRSF_ADDRESS_FLIGHT_CONTROLLER || buffer == CRSF_ADDRESS_CRSF_TRANSMITTER){
                 header_detected = true;
-                rx_data[0] = CRSF_ADDRESS_FLIGHT_CONTROLLER;
+                rx_data[0] = buffer;
                 rx_index = 1;
             }
         }
@@ -52,13 +53,21 @@ void crsf::read(){
         
         }   
     }
+
     memcpy(&header,rx_data,sizeof(header));
 
-    if(header.type == CRSF_FRAMETYPE_RC_CHANNELS_PACKED){
-        memcpy(&packet,rx_data + 3,sizeof(packet));
+    if(header.device_addr == CRSF_ADDRESS_FLIGHT_CONTROLLER){
+        if(header.type == CRSF_FRAMETYPE_RC_CHANNELS_PACKED){
+            memcpy(&packet,rx_data + 3,sizeof(packet));
+        }
+        else if(header.type == CRSF_FRAMETYPE_LINK_STATISTICS){
+            memcpy(&link_status,rx_data + 3,sizeof(link_status));
+        }
     }
-    else if(header.type == CRSF_FRAMETYPE_LINK_STATISTICS){
-        memcpy(&link_status,rx_data + 3,sizeof(link_status));
+    else if(header.device_addr == CRSF_ADDRESS_CRSF_TRANSMITTER){
+        if(header.type == CRSF_FRAMETYPE_RC_CHANNELS_PACKED){
+            memcpy(&packet,rx_data + 3,sizeof(packet));
+        }
     }
 }
 
