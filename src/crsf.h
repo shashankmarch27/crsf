@@ -40,7 +40,7 @@ public:
 
     crsf_channels_t getChannel();
     crsfLinkStatistics_t getlinkStatus();
-    uint16_t calculateCRC(int bytes);
+    uint8_t calculateCRC(int bytes);
     bool checkCRC(int bytes);
 };
 

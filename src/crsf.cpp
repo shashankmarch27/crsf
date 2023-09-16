@@ -95,51 +95,41 @@ crsfLinkStatistics_t crsf::getlinkStatus()
     return link_status;
 }
 
-uint16_t gen_poly = 0b0000000100110001; //x8 + x5 + x4 + 1
-uint16_t crsf::calculateCRC(int bytes)
-{
-    uint16_t temp = gen_poly;
-    int ActualMsbLocation = -1;
-    while(temp!=0)
-    {
-        temp = temp>>1;
-        ActualMsbLocation++;
-    }
-    
-    if (ActualMsbLocation>=16 | ActualMsbLocation <0)
-    {
-        return 0; // error
-    }
-    uint16_t dividend = 0;
+uint8_t gen_poly = 0xd5; //x8 + x5 + x4 + 1
+uint8_t crsf::calculateCRC(int bytes)
+{   
+    uint8_t dividend = 0;
     uint8_t next_byte;
-    int numberOfBytesProcessed = 0;
+    int StartFromByte = 2; // during crc calcualtion the header and length bytes are excluded
+    int numberOfBytesProcessed = StartFromByte; 
     int numberOfBitsLeft = 0;
+    bool isMsbOne = false;
     while (true)
     {
 
-        if (numberOfBitsLeft <=0 && numberOfBytesProcessed >= bytes)
+        if (numberOfBitsLeft <=0 && numberOfBytesProcessed -StartFromByte>= bytes)
         {
             // ALL BITS PROCEESSED 
             break;
         }
-        if (numberOfBitsLeft <= 0 && numberOfBytesProcessed < bytes)
+        if (numberOfBitsLeft <= 0 && numberOfBytesProcessed -StartFromByte< bytes)
         {
             // load bits into buffer if empty and if bits available
             next_byte = rx_data[numberOfBytesProcessed++];
             numberOfBitsLeft =8;
         }
 
-        
+        isMsbOne = dividend & 0b10000000;
         dividend = dividend << 1 | (next_byte>>7);   // shift First bit of Next_byte into dividend
         next_byte = next_byte << 1;  // Shift out the first bit
         numberOfBitsLeft --;
-        dividend = (dividend & 1<<ActualMsbLocation) ? dividend ^ gen_poly : dividend; //if bit aligning with MSB of gen_poly is 1 then do XOR 
-        
+        dividend = isMsbOne ? dividend ^ gen_poly : dividend; //if bit aligning with MSB of gen_poly is 1 then do XOR 
+
     }
 
     return dividend;
 }
 
-bool crsf::checkCRC(int bytes){
-    return calculateCRC(bytes) == 0 ? true: false;
+bool crsf::checkCRC(){
+    return calculateCRC(header.frame_size-1) == 0 ? true: false;
 }
