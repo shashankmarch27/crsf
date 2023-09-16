@@ -1,4 +1,5 @@
 # CRSF
+Yet another crossfire library but this time for our beloved ESP32 🙂. 
 
 ## CRC calculation
 
