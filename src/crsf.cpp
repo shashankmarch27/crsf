@@ -96,7 +96,7 @@ crsfLinkStatistics_t crsf::getlinkStatus()
 }
 
 uint16_t gen_poly = 0b0000000100110001; //x8 + x5 + x4 + 1
-uint16_t crsf::calculateCRC(uint8_t *rx_data, int bytes)
+uint16_t crsf::calculateCRC(int bytes)
 {
     uint16_t temp = gen_poly;
     int ActualMsbLocation = -1;
@@ -108,7 +108,7 @@ uint16_t crsf::calculateCRC(uint8_t *rx_data, int bytes)
     
     if (ActualMsbLocation>=16 | ActualMsbLocation <0)
     {
-        return 0; // errror
+        return 0; // error
     }
     uint16_t dividend = 0;
     uint8_t next_byte;
@@ -140,7 +140,6 @@ uint16_t crsf::calculateCRC(uint8_t *rx_data, int bytes)
     return dividend;
 }
 
-bool crsf::checkCRC(uint8_t *rx_data, int bytes)
-{
-    return calculateCRC(rx_data , bytes) == 0 ? true; false;
+bool crsf::checkCRC(int bytes){
+    return calculateCRC(bytes) == 0 ? true: false;
 }
