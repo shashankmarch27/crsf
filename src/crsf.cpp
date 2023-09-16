@@ -95,40 +95,49 @@ crsfLinkStatistics_t crsf::getlinkStatus()
     return link_status;
 }
 
-uint16_t gen_poly = 0b0000000100000111;
+uint16_t gen_poly = 0b0000000100110001; //x8 + x5 + x4 + 1
 uint16_t crsf::calculateCRC(uint8_t *rx_data, int bytes)
 {
-    uint16_t divident = 0;
+    uint16_t temp = gen_poly;
+    int ActualMsbLocation = -1;
+    while(temp!=0)
+    {
+        temp = temp>>1;
+        ActualMsbLocation++;
+    }
+    
+    if (ActualMsbLocation>=16 | ActualMsbLocation <0)
+    {
+        return 0; // errror
+    }
+    uint16_t dividend = 0;
     uint8_t next_byte;
     int numberOfBytesProcessed = 0;
-    int numberOfBitsProcessed = 0;
+    int numberOfBitsLeft = 0;
     while (true)
     {
 
-        if (numberOfBitsProcessed >= 8 && numberOfBytesProcessed >= bytes)
+        if (numberOfBitsLeft <=0 && numberOfBytesProcessed >= bytes)
         {
+            // ALL BITS PROCEESSED 
             break;
         }
-        if (numberOfBitsProcessed >= 8 && numberOfBytesProcessed < bytes)
+        if (numberOfBitsLeft <= 0 && numberOfBytesProcessed < bytes)
         {
+            // load bits into buffer if empty and if bits available
             next_byte = rx_data[numberOfBytesProcessed++];
-            numberOfBitsProcessed = 0;
+            numberOfBitsLeft =8;
         }
 
-        divident = (uint16_t)(divident / 2 * *15) ? divident ^ gen_poly : divident; // returns msb of divident , if 1 then does XOR
-        divident = divident * 2 + (uint16_t)(next_byte / 2 * *7);                   // shifting to left band and inserting msb of next byte
-        next_byte = next_byte << 1;                                                 // shift out the msb
-        numberOfBitsProcessed++;
+        
+        dividend = dividend << 1 | (next_byte>>7);   // shift First bit of Next_byte into dividend
+        next_byte = next_byte << 1;  // Shift out the first bit
+        numberOfBitsLeft --;
+        dividend = (dividend & 1<<ActualMsbLocation) ? dividend ^ gen_poly : dividend; //if bit aligning with MSB of gen_poly is 1 then do XOR 
+        
     }
 
-    return divident;
-    // if msb 1 then XOR and shift
-    // if MSB 0 then shift
-
-    // how to  implement shift??????
-    // multiplying by 10 means shifting to left
-    // multiple by 2 means shifting to left ????
-    // divide by 2 ^7 gives MSB
+    return dividend;
 }
 
 bool crsf::checkCRC(uint8_t *rx_data, int bytes)
