@@ -142,4 +142,5 @@ uint16_t crsf::calculateCRC(uint8_t *rx_data, int bytes)
 
 bool crsf::checkCRC(uint8_t *rx_data, int bytes)
 {
+    return calculateCRC(rx_data , bytes) == 0 ? true; false;
 }

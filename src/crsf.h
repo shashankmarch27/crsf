@@ -3,7 +3,8 @@
 #include <Arduino.h>
 #include "crsf_protocol.h"
 
-class crsf{
+class crsf
+{
 
 private:
     int tx_pin;
@@ -13,12 +14,12 @@ private:
     uint8_t rx_index;
     uint8_t rx_data[CRSF_MAX_PACKET_SIZE];
 
-    #ifdef ESP32
+#ifdef ESP32
     HardwareSerial *crsf_port;
-    
-    #elif defined(ARDUINO_ARCH_RP2040)
+
+#elif defined(ARDUINO_ARCH_RP2040)
     SerialUART *crsf_port;
-    #endif
+#endif
 
     bool inverted;
 
@@ -27,19 +28,20 @@ private:
     crsf_header_t header;
 
 public:
-    #ifdef ESP32
+#ifdef ESP32
     crsf(HardwareSerial *crsf_port, int rx_pin, int tx_pin, bool inverted = UNINVERTED_CRSF);
 
-    #elif defined(ARDUINO_ARCH_RP2040)
+#elif defined(ARDUINO_ARCH_RP2040)
     crsf(SerialUART *crsf_port, int rx_pin, int tx_pin);
-    #endif
+#endif
 
     void init();
     void read();
 
     crsf_channels_t getChannel();
     crsfLinkStatistics_t getlinkStatus();
-
+    uint16_t calculateCRC(uint8_t *rx_data, int bytes);
+    bool crsf::checkCRC(uint8_t *rx_data, int bytes)
 };
 
 #endif
