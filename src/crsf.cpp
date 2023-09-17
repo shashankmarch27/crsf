@@ -40,8 +40,8 @@ void crsf::read()
         {
             rx_data[rx_index] = buffer;
             rx_index++;
-            if (rx_index > rx_data[1])
-            {
+            if (rx_index > rx_data[1]+2) // packet length = len+2
+            {   // whole packet received
                 rx_index = 0;
                 header_detected = false;
             }
@@ -58,31 +58,41 @@ void crsf::read()
 
         if (rx_index == sizeof(rx_data) / sizeof(rx_data[0]))
         {
+            // if rx_data buffer overflow
             rx_index = 0;
             header_detected = false;
         }
     }
-
-    memcpy(&header, rx_data, sizeof(header));
-
-    if (header.device_addr == CRSF_ADDRESS_FLIGHT_CONTROLLER)
-    {
-        if (header.type == CRSF_FRAMETYPE_RC_CHANNELS_PACKED)
-        {
-            memcpy(&packet, rx_data + 3, sizeof(packet));
-        }
-        else if (header.type == CRSF_FRAMETYPE_LINK_STATISTICS)
-        {
-            memcpy(&link_status, rx_data + 3, sizeof(link_status));
-        }
+    // Check CRC
+    if(!checkCRC()){
+        header_detected = false;
+        return;
     }
-    else if (header.device_addr == CRSF_ADDRESS_CRSF_TRANSMITTER)
-    {
-        if (header.type == CRSF_FRAMETYPE_RC_CHANNELS_PACKED)
+        memcpy(&header, rx_data, sizeof(header));
+        
+        if (header.device_addr == CRSF_ADDRESS_FLIGHT_CONTROLLER)
         {
-            memcpy(&packet, rx_data + 3, sizeof(packet));
+            if (header.type == CRSF_FRAMETYPE_RC_CHANNELS_PACKED)
+            {
+                memcpy(&packet, rx_data + 3, sizeof(packet));
+            }
+            else if (header.type == CRSF_FRAMETYPE_LINK_STATISTICS)
+            {
+                Serial.print(header.type);
+                Serial.print(" ");
+                Serial.println(header.frame_size);
+                memcpy(&link_status, rx_data + 3, sizeof(link_status));
+            }
+
         }
-    }
+        else if (header.device_addr == CRSF_ADDRESS_CRSF_TRANSMITTER)
+        {
+            if (header.type == CRSF_FRAMETYPE_RC_CHANNELS_PACKED)
+            {
+                memcpy(&packet, rx_data + 3, sizeof(packet));
+            }
+        }
+    
 }
 
 crsf_channels_t crsf::getChannel()
@@ -95,7 +105,7 @@ crsfLinkStatistics_t crsf::getlinkStatus()
     return link_status;
 }
 
-uint8_t gen_poly = 0xd5; //x8 + x5 + x4 + 1
+uint8_t gen_poly = 0xd5;
 uint8_t crsf::calculateCRC(int bytes)
 {   
     uint8_t dividend = 0;
@@ -131,5 +141,5 @@ uint8_t crsf::calculateCRC(int bytes)
 }
 
 bool crsf::checkCRC(){
-    return calculateCRC(header.frame_size-1) == 0 ? true: false;
+    return calculateCRC(header.frame_size) == 0 ? true: false;
 }
