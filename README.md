@@ -91,4 +91,5 @@ uint8_t calculateCRC(int bytes)
     return dividend;
 }
 ```
-
+## Check List
+[ ] - Crc Check failed when trying to read rc link packet
