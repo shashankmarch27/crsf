@@ -28,6 +28,15 @@ void crsf::init()
     crsf_port->setTX(tx_pin);
     crsf_port->begin(CRSF_BAUDRATE, SERIAL_8N1);
 }
+
+#elif defined(STM32F4xx)
+crsf::crsf(HardwareSerial *crsf_port){
+    this->crsf_port = crsf_port;
+}
+
+void crsf::init(){
+    crsf_port->begin(CRSF_BAUDRATE, SERIAL_8N1);
+}
 #endif
 
 void crsf::read()
@@ -35,7 +44,6 @@ void crsf::read()
     while (crsf_port->available())
     {
         uint8_t buffer = crsf_port->read();
-
         if (header_detected)
         {
             rx_data[rx_index] = buffer;

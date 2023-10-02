@@ -2,7 +2,7 @@
 #define CRSF_H
 #include <Arduino.h>
 #include "crsf_protocol.h"
-
+ 
 class crsf
 {
 
@@ -14,11 +14,15 @@ private:
     uint8_t rx_index;
     uint8_t rx_data[CRSF_MAX_PACKET_SIZE];
 
-#ifdef ESP32
+#if defined(ESP32)
     HardwareSerial *crsf_port;
 
 #elif defined(ARDUINO_ARCH_RP2040)
     SerialUART *crsf_port;
+
+#elif defined(STM32F4xx)
+    HardwareSerial *crsf_port;
+
 #endif
 
     bool inverted;
@@ -33,6 +37,10 @@ public:
 
 #elif defined(ARDUINO_ARCH_RP2040)
     crsf(SerialUART *crsf_port, int rx_pin, int tx_pin);
+
+#elif defined(STM32F4xx)
+    crsf(HardwareSerial *crsf_port);
+
 #endif
 
     void init();
